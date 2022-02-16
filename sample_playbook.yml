@@ -1,0 +1,25 @@
+---
+- name: sample playbook
+  hosts: target
+  tasks:
+          - name: download hue file
+            get_url:
+                    url: https://cdn.gethue.com/downloads/hue-4.10.0.tgz 
+                    dest: /tmp
+                    mode: '0660'
+
+          - name: unarchive hue file
+            unarchive: 
+                    src: /tmp/hue-4.10.0.tgz
+                    dest: /tmp/hue-4.10.0
+                    remote_src: True
+                    owner: hue
+                    group: hue
+
+          - name: create symlink /opt/hue
+            file: 
+                    src: /tmp/hue-4.10.0
+                    dest: /tmp/hue
+                    state: link
+                    owner: hue
+                    group: hue
