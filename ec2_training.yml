@@ -1,0 +1,153 @@
+---
+- name: AWS EC2 Instance create training
+  hosts: localhost
+  gather_facts: False
+  tasks:
+  - name: Create VPC
+    ec2_vpc_net:
+      name: Test-VPC
+      cidr_block: 10.0.0.0/16
+      region: us-west-2
+      state: present
+    register: vpc_result
+
+  - name: Create Internet Gateway
+    ec2_vpc_igw:
+      tags: 
+        Name: Test-igw
+      vpc_id: "{{ vpc_result.vpc.id }}"
+      region: us-west-2
+      state: present
+
+  - name: Create Public Subnet
+    ec2_vpc_subnet:
+      tags:
+        Name: Test-Public-Subnet11
+      cidr: 10.0.0.0/24
+      vpc_id: "{{ vpc_result.vpc.id }}"
+      region: us-west-2
+      az: us-west-2a
+      map_public: yes
+      state: present
+    register: subnet11_result
+
+  - name: Create Public Subnet
+    ec2_vpc_subnet:
+      tags:
+        Name: Test-Public-Subnet21
+      cidr: 10.0.1.0/24
+      vpc_id: "{{ vpc_result.vpc.id }}"
+      region: us-west-2
+      az: us-west-2b
+      map_public: yes
+      state: present
+    register: subnet21_result
+
+  - name: Create Private Subnet
+    ec2_vpc_subnet:
+      tags:
+        Name: Test-Private-Subnet12
+      cidr: 10.0.2.0/23
+      vpc_id: "{{ vpc_result.vpc.id }}"
+      region: us-west-2
+      az: us-west-2a
+      state: present
+    register: subnet12_result
+
+  - name: Create Private Subnet
+    ec2_vpc_subnet:
+      tags:
+        Name: Test-Private-Subnet22
+      cidr: 10.0.4.0/23
+      vpc_id: "{{ vpc_result.vpc.id }}"
+      region: us-west-2
+      az: us-west-2b
+      state: present
+    register: subnet22_result
+
+  - name: Create Route Table
+    ec2_vpc_route_table:
+      tags:
+        Name: Test-rtb
+      vpc_id: "{{ vpc_result.vpc.id }}"
+      region: us-west-2
+      state: present
+      subnets: 
+        - "{{ subnet11_result.subnet.id }}"
+        - "{{ subnet21_result.subnet.id }}"
+
+  - name: Create Security Group
+    ec2_group:
+      name: Test-sg
+      tags:
+        Name: Test-sg
+      vpc_id: "{{ vpc_result.vpc.id }}"
+      region: us-west-2
+      state: present
+      description: allow 22, 80
+      rules:
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        ports:
+        - 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        ports:
+        - 443
+        cidr_ip: 0.0.0.0/0
+
+  - name: Create Public EC2-11
+    ec2_instance:
+      image_id: ami-0892d3c7ee96c0bf7
+      region: us-west-2
+      instance_type: t2.micro
+      key_name: "aws_ansible_20220223"
+      vpc_subnet_id: "{{ subnet11_result.subnet.id }}"
+      tags:
+        Name: Ubuntu Host 1-1
+        Description: Public EC2-11
+      wait: yes
+      network:
+        assign_public_ip: yes
+
+  - name: Create Pravite EC2-12
+    ec2_instance:
+      image_id: ami-0892d3c7ee96c0bf7
+      region: us-west-2
+      instance_type: t2.micro
+      key_name: "aws_ansible_20220223"
+      vpc_subnet_id: "{{ subnet12_result.subnet.id }}"
+      tags:
+        Name: Ubuntu Host 1-2
+        Description: Public EC2-12
+      wait: yes
+
+  - name: Create Public EC2-21
+    ec2_instance:
+      image_id: ami-0892d3c7ee96c0bf7
+      region: us-west-2
+      instance_type: t2.micro
+      key_name: "aws_ansible_20220223"
+      vpc_subnet_id: "{{ subnet21_result.subnet.id }}"
+      tags:
+        Name: Ubuntu Host 2-1
+        Description: Public EC2-21
+      wait: yes
+      network:
+        assign_public_ip: yes
+
+  - name: Create Pravite EC2-22
+    ec2_instance:
+      image_id: ami-0892d3c7ee96c0bf7
+      region: us-west-2
+      instance_type: t2.micro
+      key_name: "aws_ansible_20220223"
+      vpc_subnet_id: "{{ subnet22_result.subnet.id }}"
+      tags:
+        Name: Ubuntu Host 2-2
+        Description: Public EC2-22
+      wait: yes
+

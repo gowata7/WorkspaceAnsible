@@ -1,0 +1,54 @@
+---
+- name: Remove ec2 training
+  hosts: localhost
+  gather_facts: False
+  vars:
+    myvpc: vpc-0d62d5972a83648e9
+    grpid: sg-032303551e25f7986
+    rtbid: rtb-0190962139fbb6d89
+
+  tasks:
+  - name: Terminate running ec2 instance
+    ec2_instance:
+      state: absent
+      filters:
+        instance-state-name: running
+
+  - name: Delete group 
+    ec2_group:
+      region: us-west-2
+      group_id: "{{ grpid }}"
+      state: absent
+
+  - name: Remove subnet11
+    ec2_vpc_subnet:
+      state: absent
+      vpc_id: "{{ myvpc }}"
+      cidr: 10.0.0.0/24
+
+  - name: Remove subnet12
+    ec2_vpc_subnet:
+      state: absent
+      vpc_id: "{{ myvpc }}"
+      cidr: 10.0.2.0/23
+
+  - name: Remove subnet21
+    ec2_vpc_subnet:
+      state: absent
+      vpc_id: "{{ myvpc }}"
+      cidr: 10.0.1.0/24
+
+  - name: Remove subnet22
+    ec2_vpc_subnet:
+      state: absent
+      vpc_id: "{{ myvpc }}"
+      cidr: 10.0.4.0/23
+
+  - name: Delete route table
+    ec2_vpc_route_table:
+      vpc_id: "{{ myvpc }}"
+      region: us-west-2
+      route_table_id: "{{ rtbid }}"
+      lookup: id
+      state: absent
+
