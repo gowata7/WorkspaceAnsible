@@ -1,0 +1,37 @@
+---
+- name: Install php-fpm and deps
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes 
+  with_items:
+    - php-fpm
+    - php-gd
+    - php-json
+    - php-mysql
+    - php-curl
+    - php-mbstring
+    - php-intl
+    - php-imagick
+    - php-xml
+    - php-zip
+
+- name: Copy php optimization
+  copy: 
+    src:  php.ini
+    dest: /etc/php/7.4/fpm/
+    follow: yes
+
+- name: Copy php-fpm configuration
+  copy: 
+    src: www.conf 
+    dest: /etc/php/7.4/fpm/pool.d/
+    follow: yes
+  notify: restart php-fpm
+
+- name: Copy nginx configuration
+  copy: 
+    src: default
+    dest: /etc/nginx/sites-available/
+    follow: yes
+  notify: restart nginx

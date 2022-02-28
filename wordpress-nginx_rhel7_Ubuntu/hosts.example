@@ -1,0 +1,8 @@
+[wordpress-server]
+172.30.1.40
+
+[wordpress-server:vars]
+ansible_connection=ssh
+ansible_user=root
+ansible_ssh_pass=root
+

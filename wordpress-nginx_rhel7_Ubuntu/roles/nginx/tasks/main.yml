@@ -1,0 +1,33 @@
+---
+#- name: Remove previous nginx package
+#  shell: apt purge --auto-remove -y nginx
+
+- name: Install package prerequisties
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes 
+  with_items:
+    - curl
+    - gnupg2
+    - ca-certificates
+    - lsb-release
+
+- name: Install nginx
+  apt: 
+    name: nginx 
+    state: present
+
+- name: insert firewalld rule
+  shell: "firewall-cmd --permanent --zone=public --add-port={{ nginx_port }}/tcp" 
+  ignore_errors: yes
+
+- name: reload firewalld
+  shell: firewall-cmd --reload
+
+- name: http service state
+  service: 
+    name: nginx.service 
+    state: started 
+    enabled: yes
+

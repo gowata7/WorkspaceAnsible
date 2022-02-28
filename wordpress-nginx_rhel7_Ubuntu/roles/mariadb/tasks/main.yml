@@ -1,0 +1,41 @@
+---
+# This playbook will install MariaDB and create db user and give permissions.
+
+#- name: Remove previous MariaDB package
+#  shell: apt purge --auto-remove -y mariadb-server
+
+- name: Install MariaDB package
+  apt: 
+    name: "{{ item }}" 
+    state: present
+    update_cache: yes
+  with_items:
+    - mariadb-server
+    - python-dev
+    - libmariadbclient-dev
+
+- name: Create Mysql configuration file
+  template: 
+    src: 50-server.cnf.j2 
+    dest: /etc/mysql/50-server.cnf
+
+- name: Create MariaDB log file
+  file: 
+    path: /var/log/mysqld.log 
+    state: touch 
+    owner: mysql 
+    group: mysql 
+    mode: 0775
+
+- name: Start MariaDB Service
+  service: 
+    name: mariadb.service 
+    state: started 
+    enabled: yes
+
+- name: insert firewalld rule
+  shell: "firewall-cmd --permanent --zone=public --add-port={{ mysql_port }}/tcp" 
+  ignore_errors: yes
+
+- name: reload firewalld
+  shell: firewall-cmd --reload
